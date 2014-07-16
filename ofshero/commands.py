@@ -25,10 +25,10 @@ class Regenerate(CkanCommand):
     MAX_PER_PAGE = 50
 
     def _get_all_packages(self, context):
-        page = 1
+        offset = 0
         while True:
             data_dict = {
-                'page': page,
+                'offset': offset,
                 'limit': self.MAX_PER_PAGE,
             }
             packages = toolkit.get_action(
@@ -37,7 +37,7 @@ class Regenerate(CkanCommand):
                 raise StopIteration
             for package in packages:
                 yield package
-            page += 1
+            offset += self.MAX_PER_PAGE
 
     def command(self):
         if self.args and self.args[0] in ['--help', '-h', 'help']:

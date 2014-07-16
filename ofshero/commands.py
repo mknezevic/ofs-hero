@@ -45,7 +45,12 @@ class Regenerate(CkanCommand):
             return
 
         self._load_config()
-        site_url = config['ckan.site_url']
+        storage_url_prefix = config.get('ckan.storage_url_prefix')
+        if storage_url_prefix is None:
+            site_url = config['ckan.site_url']
+            storage_url_prefix = '/'.join([site_url, 'storage/f/'])
+        storage_len = len(storage_url_prefix)
+        
         user = toolkit.get_action('get_site_user')({'model': model,
                                                     'ignore_auth': True}, {})
         context = {'username': user.get('name'),
@@ -53,14 +58,12 @@ class Regenerate(CkanCommand):
                    'model': model}
         datasets = self._get_all_packages(context)
 
-        storage_path = '/'.join([site_url, 'storage/f/'])
-        storage_len = len(storage_path)
         resources = {}
         resource = None
 
         for dataset in datasets:
             for res in dataset['resources']:
-                if res['url'].startswith(storage_path):
+                if res['url'].startswith(storage_url_prefix):
                     resource = urllib.unquote(res['url'][storage_len:])
                     resources[resource] = {'key': resource}
         print json.dumps(resources)
